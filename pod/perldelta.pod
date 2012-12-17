@@ -142,10 +142,6 @@ makes copying large strings appear much faster.  Modifying one of the two
 (or more) strings after an assignment will force a copy internally.  This
 makes it unnecessary to pass strings by reference for efficiency.
 
-=item *
-
-Assigning a list to a hash, as in C<%h = (1, 2, 3, 4)>, has been made faster.
-
 =back
 
 =head1 Modules and Pragmata
