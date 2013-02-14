@@ -5619,12 +5619,11 @@ Perl_re_op_compile(pTHX_ SV ** const patternp, int pat_count,
 	Newx(dst, plen * 2 + 1, U8);
 
 	while (s < plen) {
-	    const UV uv = NATIVE_TO_ASCII(src[s]);
-	    if (UNI_IS_INVARIANT(uv))
-		dst[d]   = (U8)UTF_TO_NATIVE(uv);
+	    if (NATIVE_IS_INVARIANT(src[s]))
+		dst[d]   = src[s];
 	    else {
-		dst[d++] = (U8)UTF8_EIGHT_BIT_HI(uv);
-		dst[d]   = (U8)UTF8_EIGHT_BIT_LO(uv);
+		dst[d++] = UTF8_EIGHT_BIT_HI(src[s]);
+		dst[d]   = UTF8_EIGHT_BIT_LO(src[s]);
 	    }
 	    if (n < pRExC_state->num_code_blocks) {
 		if (!do_end && pRExC_state->code_blocks[n].start == s) {
