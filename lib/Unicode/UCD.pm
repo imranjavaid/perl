@@ -29,6 +29,8 @@ our @EXPORT_OK = qw(charinfo
 
 use Carp;
 
+sub IS_ASCII_PLATFORM { ord("A") == 65 }
+
 =head1 NAME
 
 Unicode::UCD - Unicode character database
@@ -100,18 +102,18 @@ Character Database.
 =head2 code point argument
 
 Some of the functions are called with a I<code point argument>, which is either
-a decimal or a hexadecimal scalar designating a Unicode code point, or C<U+>
-followed by hexadecimals designating a Unicode code point.  In other words, if
-you want a code point to be interpreted as a hexadecimal number, you must
-prefix it with either C<0x> or C<U+>, because a string like e.g. C<123> will be
-interpreted as a decimal code point.
+a decimal or a hexadecimal scalar designating a code point in the platform's
+native character set (extended to Unicode), or C<U+> followed by hexadecimals
+designating a Unicode code point.  A leading 0 will force a hexadecimal
+interpretation, as will a hexadecimal digit that isn't a decimal digit.
 
 Examples:
 
-    223     # Decimal 223
-    0223    # Hexadecimal 223 (= 547 decimal)
-    0xDF    # Hexadecimal DF (= 223 decimal
-    U+DF    # Hexadecimal DF
+    223     # Decimal 223 in native character set
+    0223    # Hexadecimal 223, native (= 547 decimal)
+    0xDF    # Hexadecimal DF, native (= 223 decimal
+    U+DF    # Hexadecimal DF, in Unicode's character set
+                              (= LATIN SMALL LETTER SHARP S)
 
 Note that the largest code point in Unicode is U+10FFFF.
 
@@ -193,7 +195,8 @@ The keys in the hash with the meanings of their values are:
 
 =item B<code>
 
-the input L</code point argument> expressed in hexadecimal, with leading zeros
+the input native L</code point argument> expressed in hexadecimal, with
+leading zeros
 added if necessary to make it contain at least four hexdigits
 
 =item B<name>
@@ -322,8 +325,16 @@ sub _getcode {
 
     if ($arg =~ /^[1-9]\d*$/) {
 	return $arg;
-    } elsif ($arg =~ /^(?:[Uu]\+|0[xX])?([[:xdigit:]]+)$/) {
-	return hex($1);
+    }
+    elsif ($arg =~ /^(?:0[xX])?([[:xdigit:]]+)$/) {
+	return CORE::hex($1);
+    }
+    elsif ($arg =~ /^[Uu]\+([[:xdigit:]]+)$/) { # Is of form U+0000, means
+                                                # wants the Unicode code
+                                                # point, not the native one
+        my $decimal = CORE::hex($1);
+        return $decimal if IS_ASCII_PLATFORM;
+        return utf8::unicode_to_native($decimal);
     }
 
     return;
@@ -592,16 +603,15 @@ have blocks, all code points are considered to be in C<No_Block>.)
 See also L</Blocks versus Scripts>.
 
 If supplied with an argument that can't be a code point, charblock() tries to
-do the opposite and interpret the argument as an old-style block name. The
-return value
-is a I<range set> with one range: an anonymous list with a single element that
-consists of another anonymous list whose first element is the first code point
-in the block, and whose second (and final) element is the final code point in
-the block.  (The extra list consisting of just one element is so that the same
-program logic can be used to handle both this return, and the return from
-L</charscript()> which can have multiple ranges.) You can test whether a code
-point is in a range using the L</charinrange()> function.  If the argument is
-not a known block, C<undef> is returned.
+do the opposite and interpret the argument as an old-style block name.  On an
+ASCII platform, the return value is a I<range set> with one range: an
+anonymous list with a single element that consists of another anonymous list
+whose first element is the first code point in the block, and whose second
+(and final) element is the final code point in the block.  On an EBCDIC
+platform, the first two Unicode blocks are not contiguous.  Their range sets
+are lists containing I<start-of-range>, I<end-of-range> code point pairs. You
+can test whether a code point is in a range set using the L</charinrange()>
+function. If the argument is not a known block, C<undef> is returned.
 
 =cut
 
@@ -631,6 +641,36 @@ sub _charblocks {
 		}
 	    }
 	    close($BLOCKSFH);
+            if (! IS_ASCII_PLATFORM) {
+                # The first two blocks, through 0xFF, are wrong on EBCDIC
+                # platforms.
+
+                my @new_blocks = _read_table("To/Blk.pl");
+
+                # Get rid of the first two ranges in the Unicode version, and
+                # replace them with the ones computed by mktables.
+                shift @BLOCKS;
+                shift @BLOCKS;
+                delete $BLOCKS{'Basic Latin'};
+                delete $BLOCKS{'Latin-1 Supplement'};
+
+                # But there are multiple entries in the computed versions, and
+                # we change their names to (which we know) to be the old-style
+                # ones.
+                for my $i (0.. @new_blocks - 1) {
+                    if ($new_blocks[$i][2] =~ s/Basic_Latin/Basic Latin/
+                        or $new_blocks[$i][2] =~
+                                    s/Latin_1_Supplement/Latin-1 Supplement/)
+                    {
+                        push @{$BLOCKS{$new_blocks[$i][2]}}, $new_blocks[$i];
+                    }
+                    else {
+                        splice @new_blocks, $i;
+                        last;
+                    }
+                }
+                unshift @BLOCKS, @new_blocks;
+            }
 	}
     }
 }
@@ -974,7 +1014,8 @@ with the following fields is returned:
 
 =item B<code>
 
-the input L</code point argument> expressed in hexadecimal, with leading zeros
+the input native L</code point argument> expressed in hexadecimal, with
+leading zeros
 added if necessary to make it contain at least four hexdigits
 
 =item B<full>
@@ -1239,7 +1280,8 @@ The keys in the bottom layer hash with the meanings of their values are:
 
 =item B<code>
 
-the input L</code point argument> expressed in hexadecimal, with leading zeros
+the input native L</code point argument> expressed in hexadecimal, with
+leading zeros
 added if necessary to make it contain at least four hexdigits
 
 =item B<lower>
@@ -3603,10 +3645,6 @@ for its block using C<charblock>).
 
 Note that starting in Unicode 6.1, many of the block names have shorter
 synonyms.  These are always given in the new style.
-
-=head1 BUGS
-
-Does not yet support EBCDIC platforms.
 
 =head1 AUTHOR
 
