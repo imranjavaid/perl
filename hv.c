@@ -790,20 +790,18 @@ Perl_hv_common(pTHX_ HV *hv, SV *keysv, const char *key, STRLEN klen,
         /* This logic semi- randomizes the insert order in a bucket.
          * Either we insert into the top, or the slot below the top
          *
-         * We rotate the HvRAND(hv) each time we use it, so that each
-         * insert potentially gets a different result.
+         * Avoid using HvRAND(), as that would require increasing the size of
+         * every single PVHV to store it, meaning pretty much every object
+         * out there gets bigger. oentry is a struct he, so 3 pointers.
+         * Hence the bottom few bits of its address aren't going to change.
          */
-        if (!HvRAND(hv)) {
-            HvRAND(hv)= ptr_hash((PTRV)HvARRAY(hv));
-        }
-        if (HvRAND(hv) & 1) {
+        if ((((PTRV)hv ^ (PTRV)oentry) >> (sizeof(*entry) / 3)) && 1) {
             HeNEXT(entry) = *oentry;
             *oentry = entry;
         } else {
             HeNEXT(entry) = HeNEXT(*oentry);
             HeNEXT(*oentry) = entry;
         }
-        HvRAND(hv)= ROTL32(HvRAND(hv),1);
     }
     else {
         *oentry = entry;
