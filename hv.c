@@ -790,7 +790,7 @@ Perl_hv_common(pTHX_ HV *hv, SV *keysv, const char *key, STRLEN klen,
         /* This logic semi- randomizes the insert order in a bucket.
          * Either we insert into the top, or the slot below the top
          *
-         * Avoid using HvRAND(), as that would require increasing the size of
+         * Avoid using xhv_rand, as that would require increasing the size of
          * every single PVHV to store it, meaning pretty much every object
          * out there gets bigger. oentry is a struct he, so 3 pointers.
          * Hence the bottom few bits of its address aren't going to change.
@@ -1137,8 +1137,20 @@ S_hsplit(pTHX_ HV *hv)
       PL_nomemok = FALSE;
       return;
     }
+
+    /* the idea of this is that we create a "random" value by hashing the address of
+     * the array, we then use the low bit to decide if we insert at the top, or insert
+     * second from top. After each such insert we rotate the hashed value. So we can
+     * use the same hashed value over and over, and in normal build environments use
+     * very few ops to do so. ROTL32() should produce a single machine operation. */
+    bucket_rand = ptr_hash((PTRV)a);
+
+
     if (SvOOK(hv)) {
-	Move(&a[oldsize * sizeof(HE*)], &a[newsize * sizeof(HE*)], 1, struct xpvhv_aux);
+        struct xpvhv_aux *const dest
+            = (struct xpvhv_aux*) &a[newsize * sizeof(HE*)];
+        Move(&a[oldsize * sizeof(HE*)], dest, 1, struct xpvhv_aux);
+        dest->xhv_rand = bucket_rand;
     }
 
     PL_nomemok = FALSE;
@@ -1146,13 +1158,6 @@ S_hsplit(pTHX_ HV *hv)
     xhv->xhv_max = --newsize;	/* HvMAX(hv) = --newsize */
     HvARRAY(hv) = (HE**) a;
     aep = (HE**)a;
-
-    /* the idea of this is that we create a "random" value by hashing the address of
-     * the array, we then use the low bit to decide if we insert at the top, or insert
-     * second from top. After each such insert we rotate the hashed value. So we can
-     * use the same hashed value over and over, and in normal build environments use
-     * very few ops to do so. ROTL32() should produce a single machine operation. */
-    HvRAND(hv)= bucket_rand= ptr_hash((PTRV)a);
 
     for (i=0; i<oldsize; i++,aep++) {
 	HE **oentry = aep;
@@ -1870,9 +1875,6 @@ S_hv_auxinit(HV *hv) {
 	Renew(array, PERL_HV_ARRAY_ALLOC_BYTES(HvMAX(hv) + 1)
 	      + sizeof(struct xpvhv_aux), char);
     }
-    if (!HvRAND(hv)) {
-        HvRAND(hv)= ptr_hash((PTRV)array);
-    }
 
     HvARRAY(hv) = (HE**) array;
     SvOOK_on(hv);
@@ -1880,6 +1882,7 @@ S_hv_auxinit(HV *hv) {
 
     iter->xhv_riter = -1; 	/* HvRITER(hv) = -1 */
     iter->xhv_eiter = NULL;	/* HvEITER(hv) = NULL */
+    iter->xhv_rand = ptr_hash((PTRV)array);
     iter->xhv_name_u.xhvnameu_name = 0;
     iter->xhv_name_count = 0;
     iter->xhv_backreferences = 0;
@@ -2394,7 +2397,7 @@ Perl_hv_iternext_flags(pTHX_ HV *hv, I32 flags)
 		iter->xhv_riter = -1; /* HvRITER(hv) = -1 */
 		break;
 	    }
-            entry = (HvARRAY(hv))[(iter->xhv_riter ^ xhv->xhv_rand) & xhv->xhv_max];
+            entry = (HvARRAY(hv))[(iter->xhv_riter ^ iter->xhv_rand) & xhv->xhv_max];
 
 	    if (!(flags & HV_ITERNEXT_WANTPLACEHOLDERS)) {
 		/* If we have an entry, but it's a placeholder, don't count it.
