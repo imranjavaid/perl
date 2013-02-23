@@ -6303,7 +6303,7 @@ reStudy:
     if (RExC_seen & REG_SEEN_GPOS)
 	r->extflags |= RXf_GPOS_SEEN;
     if (RExC_seen & REG_SEEN_LOOKBEHIND)
-	r->extflags |= RXf_LOOKBEHIND_SEEN;
+        r->extflags |= RXf_NO_INPLACE_SUBST; /* inplace might break the lookbehind */
     if (pRExC_state->num_code_blocks)
 	r->extflags |= RXf_EVAL_SEEN;
     if (RExC_seen & REG_SEEN_CANY)
@@ -6311,7 +6311,7 @@ reStudy:
     if (RExC_seen & REG_SEEN_VERBARG)
     {
 	r->intflags |= PREGf_VERBARG_SEEN;
-	r->extflags |= RXf_MODIFIES_VARS;
+        r->extflags |= RXf_NO_INPLACE_SUBST; /* don't understand this! Yves */
     }
     if (RExC_seen & REG_SEEN_CUTGROUP)
 	r->intflags |= PREGf_CUTGROUP_SEEN;
