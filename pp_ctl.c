@@ -124,7 +124,7 @@ PP(pp_regcomp)
 		    : &Perl_re_op_compile
 	    )(aTHX_ args, nargs, pm->op_code_list, eng, re,
 		&is_bare_re,
-                ( ( pm->op_pmflags & RXf_PMf_COMPILETIME) | ((pm->op_pmflags & PMf_SPLIT) ? RXf_SPLIT : 0)),
+		(pm->op_pmflags & RXf_PMf_FLAGCOPYMASK),
 		pm->op_pmflags |
 		    (PL_op->op_flags & OPf_SPECIAL ? PMf_USE_RE_EVAL : 0));
 

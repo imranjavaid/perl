@@ -333,7 +333,17 @@ and check for NULL.
 
 /* Leave some space, so future bit allocations can go either in the shared or
  * unshared area without affecting binary compatibility */
-#define RXf_BASE_SHIFT (_RXf_PMf_SHIFT_NEXT+1)
+#define RXf_BASE_SHIFT (_RXf_PMf_SHIFT_NEXT)
+
+/*
+  Set in Perl_pmruntime if op_flags & OPf_SPECIAL, i.e. split. Will
+  be used by regex engines to check whether they should set
+  RXf_SKIPWHITE
+*/
+#define RXf_SPLIT                (1<<(RXf_BASE_SHIFT-1))
+#if RXf_SPLIT != RXf_PMf_SPLIT
+#   error "RXf_SPLIT does not match RXf_PMf_SPLIT"
+#endif
 
 /* Manually decorate this function with gcc-style attributes just to
  * avoid having to restructure the header files and their called order,
@@ -395,12 +405,6 @@ get_regex_charset_name(const U32 flags, STRLEN* const lenp)
 #define RXf_USE_INTUIT_ML	(1<<(RXf_BASE_SHIFT+13))
 #define RXf_INTUIT_TAIL 	(1<<(RXf_BASE_SHIFT+14))
 
-/*
-  Set in Perl_pmruntime if op_flags & OPf_SPECIAL, i.e. split. Will
-  be used by regex engines to check whether they should set
-  RXf_SKIPWHITE
-*/
-#define RXf_SPLIT                (1<<(RXf_BASE_SHIFT+15))
 
 #define RXf_USE_INTUIT		(RXf_USE_INTUIT_NOML|RXf_USE_INTUIT_ML)
 
