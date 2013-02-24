@@ -420,9 +420,12 @@ is($cnt, scalar(@ary));
 
 # [perl #94490] constant folding should not invoke special split " "
 # behaviour.
-@_=split(0||" ","foo  bar");
-is @_, 3, 'split(0||" ") is not treated like split(" ")'; #'
+TODO: {
+    local $::TODO = 'RT #94490: constant folding should not invoke special split " "';
 
+    @_=split(0||" ","foo  bar");
+    is @_, 3, 'split(0||" ") is not treated like split(" ")'; #'
+}
 {
     my @results;
     my $expr;
@@ -454,8 +457,8 @@ is @_, 3, 'split(0||" ") is not treated like split(" ")'; #'
         "split on string of single whitespace: first element is non-empty; multiple contiguous space characters";
 }
 
-TODO: {
-    local $::TODO = 'RT #116086: split "\x20" does not work as documented';
+{
+    # 'RT #116086: split "\x20" does not work as documented';
     my @results;
     my $expr;
     $expr = ' a b c ';

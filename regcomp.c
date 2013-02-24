@@ -5219,6 +5219,7 @@ Perl_re_op_compile(pTHX_ SV ** const patternp, int pat_count,
 
     DEBUG_r(if (!PL_colorset) reginitcolors());
 
+
 #ifndef PERL_IN_XSUB_RE
     /* Initialize these here instead of as-needed, as is quick and avoids
      * having to test them each time otherwise */
@@ -5313,6 +5314,8 @@ Perl_re_op_compile(pTHX_ SV ** const patternp, int pat_count,
 
 	SV **svp;
 
+        DEBUG_PARSE_r(PerlIO_printf(Perl_debug_log,
+            "Compiling List of SVs %d elements%s\n",pat_count, orig_rx_flags & RXf_SPLIT ? " for split" : ""));
 	/* apply magic and RE overloading to each arg */
 	for (svp = patternp; svp < patternp + pat_count; svp++) {
 	    SV *rx = *svp;
@@ -5481,6 +5484,9 @@ Perl_re_op_compile(pTHX_ SV ** const patternp, int pat_count,
 		    *is_bare_re = TRUE;
 		SvREFCNT_inc(re);
 		Safefree(pRExC_state->code_blocks);
+                DEBUG_PARSE_r(PerlIO_printf(Perl_debug_log,
+                    "Precompiled pattern%s\n", orig_rx_flags & RXf_SPLIT ? " for split" : ""));
+
 		return (REGEXP*)re;
 	    }
 	}
@@ -5492,6 +5498,9 @@ Perl_re_op_compile(pTHX_ SV ** const patternp, int pat_count,
 	    int i = -1;
 	    bool is_code = 0;
 	    OP *o;
+
+            DEBUG_PARSE_r(PerlIO_printf(Perl_debug_log,
+                "Compiling OP_LIST%s\n", orig_rx_flags & RXf_SPLIT ? " for split" : ""));
 
 	    pat = newSVpvn("", 0);
 	    SAVEFREESV(pat);
@@ -5523,6 +5532,8 @@ Perl_re_op_compile(pTHX_ SV ** const patternp, int pat_count,
 	}
 	else {
 	    assert(expr->op_type == OP_CONST);
+            DEBUG_PARSE_r(PerlIO_printf(Perl_debug_log,
+                "Compiling OP_CONST%s\n", orig_rx_flags & RXf_SPLIT ? " for split" : ""));
 	    pat = cSVOPx_sv(expr);
 	}
     }
@@ -6322,27 +6333,22 @@ reStudy:
     else
         RXp_PAREN_NAMES(r) = NULL;
 
-#ifdef STUPID_PATTERN_CHECKS            
-    if (RX_PRELEN(rx) == 0)
-        r->extflags |= RXf_NULL;
-    if (RX_PRELEN(rx) == 3 && memEQ("\\s+", RX_PRECOMP(rx), 3))
-        r->extflags |= RXf_WHITE;
-    else if (RX_PRELEN(rx) == 1 && RXp_PRECOMP(rx)[0] == '^')
-        r->extflags |= RXf_START_ONLY;
-#else
     {
         regnode *first = ri->program + 1;
         U8 fop = OP(first);
+        regnode *next = NEXTOPER(first);
+        U8 nop = OP(next);
 
-        if (PL_regkind[fop] == NOTHING && OP(NEXTOPER(first)) == END)
+        if (PL_regkind[fop] == NOTHING && nop == END)
             r->extflags |= RXf_NULL;
-        else if (PL_regkind[fop] == BOL && OP(NEXTOPER(first)) == END)
+        else if (PL_regkind[fop] == BOL && nop == END)
             r->extflags |= RXf_START_ONLY;
-        else if (fop == PLUS && PL_regkind[OP(NEXTOPER(first))] == POSIXD && FLAGS(NEXTOPER(first)) == _CC_SPACE
-			     && OP(regnext(first)) == END)
-            r->extflags |= RXf_WHITE;    
+        else if (fop == PLUS && PL_regkind[nop] == POSIXD && FLAGS(next) == _CC_SPACE && OP(regnext(first)) == END) {
+            r->extflags |= RXf_WHITE;
+        } else if ( r->extflags & RXf_SPLIT && fop == EXACT && STR_LEN(first) == 1 && *(STRING(first)) == ' ' && nop == END ) {
+            r->extflags |= (RXf_SKIPWHITE|RXf_WHITE);
+        }
     }
-#endif
 #ifdef DEBUGGING
     if (RExC_paren_names) {
         ri->name_list_idx = add_data( pRExC_state, 1, "a" );
