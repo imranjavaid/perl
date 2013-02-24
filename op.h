@@ -445,7 +445,9 @@ struct pmop {
 #define PMf_IS_QR	(1<<(PMf_BASE_SHIFT+12))
 #define PMf_USE_RE_EVAL	(1<<(PMf_BASE_SHIFT+13)) /* use re'eval' in scope */
 
-#if PMf_BASE_SHIFT+13 > 31
+#define PMf_SPLIT        (1<<(PMf_BASE_SHIFT+14)) /* use re'eval' in scope */
+
+#if PMf_BASE_SHIFT+14 > 31
 #   error Too many PMf_ bits used.  See above and regnodes.h for any spare in middle
 #endif
 

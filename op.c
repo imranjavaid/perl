@@ -4672,6 +4672,9 @@ Perl_pmruntime(pTHX_ OP *o, OP *expr, bool isreg, I32 floor)
 	    pm->op_pmflags |= PMf_CODELIST_PRIVATE;
 	}
 
+        if (o->op_flags & OPf_SPECIAL)
+            pm->op_pmflags |= PMf_SPLIT;
+
 	/* the OP_REGCMAYBE is a placeholder in the non-threaded case
 	 * to allow its op_next to be pointed past the regcomp and
 	 * preceding stacking ops;
