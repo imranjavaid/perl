@@ -3469,7 +3469,7 @@ S_scan_const(pTHX_ char *start)
 			if (UNI_IS_INVARIANT(uv)) {
 			    *d++ = (char) uv;
 			}
-			else d = (char*)uvuni_to_utf8((U8*)d, uv);
+			else d = (char*)uvuni_to_utf8_flags((U8*)d, uv, 0);
 		    }
 		}
 		else /* Here is \N{NAME} but not \N{U+...}. */
