@@ -5,7 +5,7 @@
  */
 
 #ifdef PERL_CORE
-/* A Bison parser, made by GNU Bison 2.6.1.  */
+/* A Bison parser, made by GNU Bison 2.7.  */
 
 /* Bison interface for Yacc-like parsers in C
    
@@ -134,88 +134,6 @@ extern int yydebug;
    };
 #endif
 
-/* Tokens.  */
-#define GRAMPROG 258
-#define GRAMEXPR 259
-#define GRAMBLOCK 260
-#define GRAMBARESTMT 261
-#define GRAMFULLSTMT 262
-#define GRAMSTMTSEQ 263
-#define WORD 264
-#define METHOD 265
-#define FUNCMETH 266
-#define THING 267
-#define PMFUNC 268
-#define PRIVATEREF 269
-#define QWLIST 270
-#define FUNC0OP 271
-#define FUNC0SUB 272
-#define UNIOPSUB 273
-#define LSTOPSUB 274
-#define PLUGEXPR 275
-#define PLUGSTMT 276
-#define LABEL 277
-#define FORMAT 278
-#define SUB 279
-#define ANONSUB 280
-#define PACKAGE 281
-#define USE 282
-#define WHILE 283
-#define UNTIL 284
-#define IF 285
-#define UNLESS 286
-#define ELSE 287
-#define ELSIF 288
-#define CONTINUE 289
-#define FOR 290
-#define GIVEN 291
-#define WHEN 292
-#define DEFAULT 293
-#define LOOPEX 294
-#define DOTDOT 295
-#define YADAYADA 296
-#define FUNC0 297
-#define FUNC1 298
-#define FUNC 299
-#define UNIOP 300
-#define LSTOP 301
-#define RELOP 302
-#define EQOP 303
-#define MULOP 304
-#define ADDOP 305
-#define DOLSHARP 306
-#define DO 307
-#define HASHBRACK 308
-#define NOAMP 309
-#define LOCAL 310
-#define MY 311
-#define REQUIRE 312
-#define COLONATTR 313
-#define FORMLBRACK 314
-#define FORMRBRACK 315
-#define PREC_LOW 316
-#define DOROP 317
-#define OROP 318
-#define ANDOP 319
-#define NOTOP 320
-#define ASSIGNOP 321
-#define DORDOR 322
-#define OROR 323
-#define ANDAND 324
-#define BITOROP 325
-#define BITANDOP 326
-#define SHIFTOP 327
-#define MATCHOP 328
-#define REFGEN 329
-#define UMINUS 330
-#define POWOP 331
-#define POSTDEC 332
-#define POSTINC 333
-#define PREDEC 334
-#define PREINC 335
-#define ARROW 336
-#define PEG 337
-
 
 #ifdef PERL_IN_TOKE_C
 static bool
@@ -243,7 +161,7 @@ S_is_opval_token(int type) {
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
 {
-/* Line 2049 of yacc.c  */
+/* Line 2058 of yacc.c  */
 
     I32	ival; /* __DEFAULT__ (marker for regen_perly.pl;
 				must always be 1st union member) */
@@ -262,7 +180,7 @@ typedef union YYSTYPE
 #endif
 
 
-/* Line 2049 of yacc.c  */
+/* Line 2058 of yacc.c  */
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

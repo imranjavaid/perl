@@ -743,11 +743,11 @@ static const yytype_int16 yytable[] =
      184
 };
 
-#define yypact_value_is_default(yystate) \
-  ((yystate) == (-391))
+#define yypact_value_is_default(Yystate) \
+  (!!((Yystate) == (-391)))
 
-#define yytable_value_is_error(yytable_value) \
-  ((yytable_value) == (-202))
+#define yytable_value_is_error(Yytable_value) \
+  (!!((Yytable_value) == (-202)))
 
 static const yytype_int16 yycheck[] =
 {
