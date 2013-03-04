@@ -1723,16 +1723,14 @@ Perl_gv_fetchpvn_flags(pTHX_ const char *nambeg, STRLEN full_len, I32 flags,
 	}
     }
     else if (len > 1) {
-#ifndef EBCDIC
-	if (*name > 'V' ) {
+	if (NATIVE_TO_ASCII(*name) > NATIVE_TO_ASCII('V') ) {
 	    NOOP;
 	    /* Nothing else to do.
 	       The compiler will probably turn the switch statement into a
 	       branch table. Make sure we avoid even that small overhead for
 	       the common case of lower case variable names.  */
-	} else
-#endif
-	{
+	}
+        else {
 	    const char * const name2 = name + 1;
 	    switch (*name) {
 	    case 'A':
