@@ -1209,7 +1209,10 @@ is("\N{U+1D0C5}", "\N{BYZANTINE MUSICAL SYMBOL FTHORA SKLIRON CHROMA VASIS}", 'V
                 # These four code points now have names, from NameAlias, but
                 # aren't listed as having names in UnicodeData.txt, so viacode
                 # returns their alias names, not undef
-                next if $i == 0x80 || $i == 0x81 || $i == 0x84 || $i == 0x99;
+                next if $i == utf8::unicode_to_native(0x80)
+                              || $i == utf8::unicode_to_native(0x81)
+                              || $i == utf8::unicode_to_native(0x84)
+                              || $i == utf8::unicode_to_native(0x99);
 
                 # If there is no name for this code point, all we can
                 # test is that.
