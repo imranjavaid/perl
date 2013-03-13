@@ -11295,7 +11295,7 @@ Perl_yyerror_pvn(pTHX_ const char *const s, STRLEN len, U32 flags)
     }
     else {
 	sv_catpvs(where_sv, "next char ");
-	if (yychar < 32)
+	if (isCNTRL(yychar) && yychar != DEL_NATIVE)
 	    Perl_sv_catpvf(aTHX_ where_sv, "^%c", toCTRL(yychar));
 	else if (isPRINT_LC(yychar)) {
 	    const char string = yychar;
