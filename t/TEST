@@ -753,7 +753,7 @@ EOT
 	    print "${te}$failure\n";
 	    $::bad_files = $::bad_files + 1;
 	    if ($test =~ /^base/) {
-		die "Failed a basic test ($test) -- cannot continue.\n";
+		#die "Failed a basic test ($test) -- cannot continue.\n";
 	    }
 	    $failed_tests{$test} = 1;
 	}
